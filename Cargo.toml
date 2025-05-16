@@ -3,4 +3,8 @@ name = "branchtransfer"
 version = "0.1.0-DEV"
 edition = "2024"
 
+[[bin]]
+name = "bxfer"
+path = "src/main.rs"
+
 [dependencies]
