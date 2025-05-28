@@ -1,0 +1,47 @@
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
+
+pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> Result<(), io::Error> {
+    for entry in fs::read_dir(path)? {
+        let fl = entry?;
+        if fl.file_type()?.is_dir() & (fl.path().to_str().unwrap() != ".git") {
+            fs::remove_dir_all(fl.path())?;
+        } else {
+            fs::remove_file(fl.path())?;
+        }
+    }
+
+    Ok(())
+}
+
+pub(crate) fn copy_all<T: AsRef<Path>>(src: &T, trg: &T) -> io::Result<()> {
+    let fls = fs::read_dir(src)?;
+    fs::create_dir_all(&trg)?;
+    // borrow here so that it can be used later
+
+    for fl in fls {
+        let fl = fl?;
+
+        if fl.file_type()?.is_dir() {
+            copy_all(&fl.path(), &trg.as_ref().join(fl.file_name()))?;
+        } else {
+            fs::copy(fl.path(), trg.as_ref().join(fl.file_name()))?;
+        }
+    }
+    Ok(())
+}
+// Returns a random path to open worktree at
+pub(crate) fn rand_path(branch: &String) -> PathBuf {
+    let tmpbase = std::env::temp_dir();
+    let rnum = rand::random::<u32>();
+    let sep = "_".to_string();
+    let rnr = "wrkt_".to_string()
+        + &branch
+        + &sep
+        + &rnum.to_string()
+        + &sep
+        + &std::process::id().to_string();
+    tmpbase.join(rnr)
+}
