@@ -1,9 +1,22 @@
-use std::{fs, io, path::Path};
+use std::{
+    fs,
+    io::{self, ErrorKind},
+    path::Path,
+};
 
-pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> Result<(), io::Error> {
+use anyhow::Result;
+
+pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> Result<()> {
     for entry in fs::read_dir(path)? {
         let fl = entry?;
-        if fl.file_type()?.is_dir() & (fl.path().to_str().unwrap() != ".git") {
+        if fl.file_type()?.is_dir()
+            & (fl.path().to_str().ok_or_else(|| {
+                io::Error::new(
+                    ErrorKind::InvalidInput,
+                    format!("Error when converting {} to str", fl.path().display()),
+                )
+            })? != ".git")
+        {
             fs::remove_dir_all(fl.path())?;
         } else {
             fs::remove_file(fl.path())?;
@@ -13,7 +26,7 @@ pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub(crate) fn copy_all<T: AsRef<Path>>(src: &T, trg: &T) -> io::Result<()> {
+pub(crate) fn copy_all<T: AsRef<Path>>(src: &T, trg: &T) -> Result<()> {
     let fls = fs::read_dir(src)?;
     fs::create_dir_all(&trg)?;
     // borrow here so that it can be used later
