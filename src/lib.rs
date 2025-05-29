@@ -12,19 +12,21 @@ mod gitutils;
 use fileops::{copy_all, rm_contents};
 use gitutils::{clean_worktree, create_worktree, show_branch};
 use tempfile::tempdir;
-pub fn branch_transfer() {
-    println!("Hello from library!")
-}
-
-pub fn branch_xf_old() -> Result<()> {
+pub fn branch_transfer(
+    path: String,
+    branch: String,
+    srcrel: String,
+    trgrel: String,
+    msg: String,
+) -> Result<()> {
     // open repo
-    let repopath = Path::new(".");
+    let repopath = Path::new(&path);
     let repo = Repository::open(&repopath)?;
     let repopath = repo.path().parent().expect("Something wrong with repopath");
 
-    let src = repopath.join("f1");
+    let src = repopath.join(srcrel);
     println!("{:?}", repopath);
-    let branch = "rootfs".to_string();
+    // let branch = "rootfs".to_string();
     let tdir = tempdir()?;
     let rpath = tdir.path().join("wt-".to_string() + &branch);
     // panic!("Random path: {} ", rpath.display());
@@ -36,7 +38,7 @@ pub fn branch_xf_old() -> Result<()> {
     // switch to worktree
     let repo = Repository::open(rpath)?; //.unwrap_or_else(|_| panic!("could not open repo"));
     show_branch(&repo);
-    let targrel = "s2";
+    let targrel = &trgrel;
     let trg = absolute(wt.path().join(targrel))?;
     println!("{:?}", trg);
     println!("Target directory: {:?}", trg);
@@ -103,7 +105,7 @@ pub fn branch_xf_old() -> Result<()> {
         Some("HEAD"),
         &sig,
         &sig,
-        &format!("Copied contents from a different worktree into {}", targrel),
+        &msg, // &format!("Copied contents from a different worktree into {}", targrel),
         &tree,
         &[&pcmt], // no parents
     )?;
