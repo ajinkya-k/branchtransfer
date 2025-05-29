@@ -4,8 +4,6 @@ use std::{
     path::{PathBuf, absolute},
 };
 
-use anyhow::Result;
-
 use git2::{Repository, StatusOptions};
 
 mod fileops;
@@ -19,7 +17,7 @@ pub fn branch_transfer(
     srcrel: String,
     trgrel: String,
     msg: String,
-) -> Result<()> {
+) -> anyhow::Result<()> {
     // open repo
     // let repopath = Path::new(&path);
     let repo = Repository::open(&repopath)?; //TODO: switch with discover
@@ -42,7 +40,7 @@ pub fn branch_transfer(
 
     // switch to worktree
     let repo = Repository::open(rpath)?;
-    show_branch(&repo);
+    let _ = show_branch(&repo)?;
     let targrel = &trgrel;
     let trg = absolute(wt.path().join(targrel))?;
     println!("{:?}", trg);
