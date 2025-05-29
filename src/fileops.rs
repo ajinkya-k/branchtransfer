@@ -4,9 +4,7 @@ use std::{
     path::Path,
 };
 
-use anyhow::Result;
-
-pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> Result<()> {
+pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> anyhow::Result<()> {
     for entry in fs::read_dir(path)? {
         let fl = entry?;
         if fl.file_type()?.is_dir()
@@ -26,7 +24,7 @@ pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn copy_all<T: AsRef<Path>>(src: &T, trg: &T) -> Result<()> {
+pub(crate) fn copy_all<T: AsRef<Path>>(src: &T, trg: &T) -> anyhow::Result<()> {
     let fls = fs::read_dir(src)?;
     fs::create_dir_all(&trg)?;
     // borrow here so that it can be used later

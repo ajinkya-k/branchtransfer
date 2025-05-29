@@ -1,4 +1,3 @@
-use anyhow::Result;
 use std::{env::current_dir, io::ErrorKind, ops::Not, path::PathBuf};
 
 use clap::Parser;
@@ -19,7 +18,7 @@ struct Cli {
     trgdir: Option<String>,
 }
 
-pub(crate) fn parse_args() -> Result<(PathBuf, String, String, String, String)> {
+pub(crate) fn parse_args() -> anyhow::Result<(PathBuf, String, String, String, String)> {
     let args = Cli::parse();
     let srcrel = args
         .srcdir
