@@ -1,6 +1,7 @@
 use std::{
     fs,
-    path::{Path, PathBuf, absolute},
+    io::{Error, ErrorKind},
+    path::{PathBuf, absolute},
 };
 
 use anyhow::Result;
@@ -13,18 +14,23 @@ use fileops::{copy_all, rm_contents};
 use gitutils::{clean_worktree, create_worktree, show_branch};
 use tempfile::tempdir;
 pub fn branch_transfer(
-    path: String,
+    repopath: PathBuf,
     branch: String,
     srcrel: String,
     trgrel: String,
     msg: String,
 ) -> Result<()> {
     // open repo
-    let repopath = Path::new(&path);
-    let repo = Repository::open(&repopath)?;
-    let repopath = repo.path().parent().expect("Something wrong with repopath");
+    // let repopath = Path::new(&path);
+    let repo = Repository::open(&repopath)?; //TODO: switch with discover
+    let repopath = repo.path().parent().ok_or_else(|| {
+        Error::new(
+            ErrorKind::InvalidData,
+            "Problem computing the parent of the repo root",
+        )
+    })?;
 
-    let src = repopath.join(srcrel);
+    let src = repopath.join(srcrel); //TODO: Change accordingly with Repo::discover
     println!("{:?}", repopath);
     // let branch = "rootfs".to_string();
     let tdir = tempdir()?;

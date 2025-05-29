@@ -1,7 +1,4 @@
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
+use std::{fs, io, path::Path};
 
 pub(crate) fn rm_contents<T: AsRef<Path>>(path: &T) -> Result<(), io::Error> {
     for entry in fs::read_dir(path)? {
@@ -31,17 +28,4 @@ pub(crate) fn copy_all<T: AsRef<Path>>(src: &T, trg: &T) -> io::Result<()> {
         }
     }
     Ok(())
-}
-// Returns a random path to open worktree at
-pub(crate) fn rand_path(branch: &String) -> PathBuf {
-    let tmpbase = std::env::temp_dir();
-    let rnum = rand::random::<u32>();
-    let sep = "_".to_string();
-    let rnr = "wrkt_".to_string()
-        + &branch
-        + &sep
-        + &rnum.to_string()
-        + &sep
-        + &std::process::id().to_string();
-    tmpbase.join(rnr)
 }
