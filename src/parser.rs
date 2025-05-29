@@ -6,15 +6,15 @@ use clap::Parser;
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    /// branch to copy to
+    /// Subdirectory to copy
+    srcdir: String,
+    /// Target branch
     #[arg(long, short)]
     branch: Option<String>,
-    /// directory to copy
-    srcdir: String,
-    /// commit message
+    /// Commit message
     #[arg(long, short)]
     message: Option<String>,
-
+    /// target (sub)directory
     #[arg(long, short)]
     trgdir: Option<String>,
 }
