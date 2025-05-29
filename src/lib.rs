@@ -35,14 +35,13 @@ pub fn branch_transfer(
     // let branch = "rootfs".to_string();
     let tdir = tempdir()?;
     let rpath = tdir.path().join("wt-".to_string() + &branch);
-    // panic!("Random path: {} ", rpath.display());
-    //
+
     println!("Attemtping to create worktree at {}", rpath.display());
     let wt = create_worktree(&repo, &branch, &rpath)?;
     println!("Created wt: {:?}", wt.path());
 
     // switch to worktree
-    let repo = Repository::open(rpath)?; //.unwrap_or_else(|_| panic!("could not open repo"));
+    let repo = Repository::open(rpath)?;
     show_branch(&repo);
     let targrel = &trgrel;
     let trg = absolute(wt.path().join(targrel))?;
@@ -59,12 +58,6 @@ pub fn branch_transfer(
     }
     println!("Attempting Copy!");
     let _ = copy_all(&src, &trg)?;
-
-    // let paths = fs::read_dir(&trg).unwrap();
-
-    // for path in paths {
-    //     println!("Name: {}", path.unwrap().path().display())
-    // }
 
     // Get status
     let mut stopt = StatusOptions::new();
@@ -88,33 +81,24 @@ pub fn branch_transfer(
     //     // index.add_all(PathBuf::from(targrel).iter(), git2::IndexAddOption::DEFAULT, None).unwrap();
     // }
     // write index
-    index
-        .add_all(
-            PathBuf::from(targrel).iter(),
-            git2::IndexAddOption::DEFAULT,
-            None,
-        )
-        .unwrap();
+    index.add_all(
+        PathBuf::from(targrel).iter(),
+        git2::IndexAddOption::DEFAULT,
+        None,
+    )?;
     index.write()?;
 
     // create tree
-    let tree_id = index.write_tree().unwrap();
-    let tree = repo.find_tree(tree_id).unwrap();
-    let sig = repo.signature().unwrap();
+    let tree_id = index.write_tree()?;
+    let tree = repo.find_tree(tree_id)?;
+    let sig = repo.signature()?;
 
     // prev commit = current HEAD
-    let pcmt = repo.head().unwrap().peel_to_commit()?;
+    let pcmt = repo.head()?.peel_to_commit()?;
 
     // actually do the commiting
     println!("Commiting");
-    repo.commit(
-        Some("HEAD"),
-        &sig,
-        &sig,
-        &msg, // &format!("Copied contents from a different worktree into {}", targrel),
-        &tree,
-        &[&pcmt], // no parents
-    )?;
+    repo.commit(Some("HEAD"), &sig, &sig, &msg, &tree, &[&pcmt])?;
 
     // cleanup and prune
     clean_worktree(wt)?;
