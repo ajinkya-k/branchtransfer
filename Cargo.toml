@@ -2,6 +2,10 @@
 name = "branchtransfer"
 version = "0.1.0-DEV"
 edition = "2024"
+license-file = "LICENSE"
+repository = "https://github.com/ajinkya-k/branchtransfer"
+homepage = "https://ajinkyakokandakar.com/branchtransfer"
+readme = "README.md"
 
 [[bin]]
 name = "bxfer"
