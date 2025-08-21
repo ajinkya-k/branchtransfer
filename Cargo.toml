@@ -6,6 +6,8 @@ license-file = "LICENSE"
 repository = "https://github.com/ajinkya-k/branchtransfer"
 homepage = "https://ajinkyakokandakar.com/branchtransfer"
 readme = "README.md"
+description = "A command line tool to transfer files between git branches"
+authors = ["Ajinkya H. Kokandakar"]
 
 [[bin]]
 name = "bxfer"
