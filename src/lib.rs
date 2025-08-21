@@ -4,12 +4,12 @@ use std::{
     path::{PathBuf, absolute},
 };
 
-use git2::{Repository, StatusOptions};
+use git2::{ErrorClass, ErrorCode, Repository, StatusOptions};
 
 mod fileops;
 mod gitutils;
 use fileops::{copy_all, rm_contents};
-use gitutils::{clean_worktree, create_worktree, show_branch};
+use gitutils::{clean_worktree, create_worktree};
 use tempfile::tempdir;
 pub fn branch_transfer(
     repopath: PathBuf,
@@ -40,7 +40,31 @@ pub fn branch_transfer(
 
     // switch to worktree
     let repo = Repository::open(rpath)?;
-    let _ = show_branch(&repo)?;
+
+    // print branch name
+    match repo.head() {
+        Ok(head) if head.is_branch() => println!(
+            "On branch {}",
+            head.shorthand()
+                .unwrap_or_else(|| "couldn't resolve ref to shortname")
+        ),
+        Ok(_) => {
+            clean_worktree(wt)?;
+            return Err(git2::Error::new(
+                ErrorCode::Invalid,
+                ErrorClass::Reference,
+                format!("HEAD resolved to non-branch ref. Cleaning up and exiting!"),
+            )
+            .into());
+        }
+        Err(e) if e.code() == ErrorCode::UnbornBranch => {
+            println!("On Unborn Branch {}", &branch)
+        }
+        Err(e) => {
+            clean_worktree(wt)?;
+            return Err(e.into());
+        }
+    };
     let targrel = &trgrel;
     let trg = absolute(wt.path().join(targrel))?;
     println!("{:?}", trg);
@@ -55,13 +79,19 @@ pub fn branch_transfer(
         rm_contents(&trg)?;
     }
     println!("Attempting Copy!");
-    let _ = copy_all(&src, &trg)?;
+    match copy_all(&src, &trg) {
+        Ok(_) => println!("Successfully copied"),
+        Err(e) => {
+            clean_worktree(wt)?;
+            return Err(e)
+        }
+    };
 
     // Get status
     let mut stopt = StatusOptions::new();
     println!("{:?}", targrel.to_string() + "/*");
-    stopt.pathspec(&targrel.to_string()); //TODO: this may not work if targrel
-    // let st = repo.statuses(Some(&mut stopt))?;
+    stopt.pathspec(&targrel.to_string());
+
     let st = repo.statuses(None)?;
 
     if st.is_empty() {

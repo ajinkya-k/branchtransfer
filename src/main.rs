@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use branchtransfer::branch_transfer;
 mod parser;
 use parser::parse_args;

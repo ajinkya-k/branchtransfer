@@ -1,4 +1,4 @@
-use git2::{ErrorCode, Repository, Worktree, WorktreeAddOptions};
+use git2::{ErrorClass, ErrorCode, Repository, Worktree, WorktreeAddOptions};
 use std::{fs::remove_dir_all, path::Path};
 
 pub(crate) fn create_worktree(
@@ -19,25 +19,19 @@ pub(crate) fn create_worktree(
     Ok(wt)
 }
 
-pub(crate) fn show_branch(repo: &Repository) -> anyhow::Result<()> {
-    let head = match repo.head() {
-        Ok(head) => Some(head),
-        Err(ref e) if e.code() == ErrorCode::UnbornBranch || e.code() == ErrorCode::NotFound => {
-            None
-        }
-        Err(e) => return Err(e.into()),
-    };
-    let head = head.as_ref().and_then(|h| h.shorthand());
-
-    println!(
-        "On branch {}",
-        head.unwrap_or("Not currently on any branch")
-    );
-    Ok(())
-}
-
 pub(crate) fn clean_worktree(wt: Worktree) -> anyhow::Result<()> {
     let _ = remove_dir_all(&wt.path())?;
-    let _ = wt.is_prunable(None).and_then(|_| wt.prune(None))?;
+    let _ = match wt.is_prunable(None)? {
+        true => wt.prune(None),
+        false => Err(git2::Error::new(
+            ErrorCode::GenericError,
+            ErrorClass::Worktree,
+            &format!(
+                "Couldn't prune worktree {} formerly opened at {}",
+                wt.name().unwrap_or(""),
+                wt.path().display()
+            ),
+        )),
+    }?;
     Ok(())
 }
