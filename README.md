@@ -14,9 +14,11 @@ This tool is still in active development.
 For now, it uses the following syntax:
 
 ```bash
-bxfer <targetbranch> <source> <target>
+bxfer -b <targetbranch> -t <target> <source>
 ```
 This copies the contents of `source` directory in the current working directory and replaces the contents of the `target` directory in the `targetbranch` with them, and finally commits the changes to the `targetbranch`.
+If the target directory is not provided, the contents are copied into the `source` directory in the `targetbranch`.
+
 ## What does this tool do?
 
 It provides a binary that replaces the contents of the `target` subdirectory in the `targetbranch` with the contents of the `source` subdirectory in the current working directory in a git repo. Then, the changes are committed to the `targetbranch`.
